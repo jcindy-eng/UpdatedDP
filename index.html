@@ -1,0 +1,1729 @@
+<style>
+.ad-root {
+  --bg: #F6F7F9;
+  --panel: #FFFFFF;
+  --border: #E3E6EA;
+  --text: #1C222B;
+  --text-soft: #6B7280;
+  --text-faint: #9AA1AC;
+  --blue: #3355E8;
+  --blue-soft: #EEF1FE;
+  --amber: #B7791F;
+  --amber-soft: #FCF3E1;
+  --red: #C0362C;
+  --red-soft: #FBEAE9;
+  --green: #2F7D4F;
+  --green-soft: #E9F5EE;
+  --purple: #6B3FA0;
+  --purple-soft: #F2ECFB;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.ad-root * { box-sizing: border-box; }
+
+.ad-header {
+  padding: 18px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.ad-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ad-title-left { display: flex; align-items: center; gap: 12px; }
+.ad-menu-btn {
+  width: 36px; height: 36px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+  cursor: pointer; font-size: 16px; color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+}
+.ad-menu-btn:hover { background: #F0F1F3; }
+.ad-menu-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ad-title { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+.ad-subtitle { color: var(--text-soft); font-size: 13px; margin-top: 2px; }
+.ad-today { font-size: 12.5px; color: var(--text-faint); }
+
+.ad-sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(20, 22, 28, 0.32);
+  z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+}
+.ad-sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+
+.ad-sidebar {
+  position: fixed; top: 0; left: 0; height: 100vh; width: 240px;
+  background: var(--panel); border-right: 1px solid var(--border);
+  z-index: 50; padding: 16px 12px; overflow-y: auto;
+  box-shadow: 3px 0 16px rgba(20,22,28,0.08);
+  transform: translateX(-100%); transition: transform 0.18s ease;
+}
+.ad-sidebar.open { transform: translateX(0); }
+.ad-sidebar-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 4px 12px; margin-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.ad-sidebar-title { font-weight: 700; font-size: 14px; }
+.ad-sidebar-close {
+  background: none; border: none; font-size: 18px; line-height: 1;
+  color: var(--text-soft); cursor: pointer; padding: 2px 6px;
+}
+.ad-sidebar-close:hover { color: var(--text); }
+
+.ad-nav-item {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; border-radius: 6px;
+  padding: 9px 10px; margin-bottom: 2px;
+  font-size: 13.5px; font-weight: 600; color: var(--text-soft); cursor: pointer;
+}
+.ad-nav-item:hover:not(.active) { background: #EDEEF1; color: var(--text); }
+.ad-nav-item.active { background: var(--blue-soft); color: var(--blue); }
+.ad-nav-item:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ad-nav-group { margin-bottom: 2px; }
+.ad-nav-sub { margin: 2px 0 6px 12px; padding-left: 8px; border-left: 2px solid var(--border); }
+.ad-nav-subitem {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; border-radius: 6px;
+  padding: 7px 9px; margin-bottom: 1px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-soft); cursor: pointer;
+}
+.ad-nav-subitem:hover:not(.active) { background: #EDEEF1; color: var(--text); }
+.ad-nav-subitem.active { background: var(--blue-soft); color: var(--blue); }
+
+@media (max-width: 480px) { .ad-sidebar { width: 82vw; } }
+
+.ad-main { max-width: 1280px; margin: 0 auto; padding: 20px 24px 56px; }
+.ad-panel { display: none; }
+.ad-panel.active { display: block; }
+
+/* ---- shared bits ---- */
+.ad-section-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.ad-section-desc { color: var(--text-soft); font-size: 12.5px; margin-bottom: 10px; }
+.ad-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ad-empty {
+  color: var(--text-faint);
+  font-size: 13px;
+  padding: 18px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+.ad-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.ad-badge.in-progress { background: var(--blue-soft); color: var(--blue); }
+.ad-badge.waiting { background: var(--amber-soft); color: var(--amber); }
+.ad-badge.blocked { background: var(--red-soft); color: var(--red); }
+.ad-badge.done { background: var(--green-soft); color: var(--green); }
+.ad-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+.ad-btn {
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+.ad-btn:hover { background: #F0F1F3; }
+.ad-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.ad-btn.primary:hover { background: #2947CC; }
+.ad-btn.ghost { border: none; background: none; color: var(--blue); padding: 2px 4px; }
+.ad-btn.ghost.danger { color: var(--red); }
+.ad-btn.dashed {
+  width: 100%; background: none; border: 1px dashed var(--border); color: var(--text-soft);
+  padding: 8px; border-radius: 6px; font-size: 12.5px; font-weight: 600;
+}
+.ad-btn.dashed:hover { background: #F0F1F3; color: var(--text); }
+
+.ad-form {
+  background: #FAFBFC;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ad-form label { font-size: 11.5px; font-weight: 600; color: var(--text-soft); }
+.ad-form input, .ad-form select, .ad-form textarea {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 100%;
+  color: var(--text);
+  background: #fff;
+}
+.ad-form textarea { resize: vertical; min-height: 46px; }
+.ad-form-actions { display: flex; gap: 8px; margin-top: 2px; }
+
+/* ---- overview ---- */
+.ad-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.ad-stat { padding: 14px 16px; }
+.ad-stat-num { font-size: 24px; font-weight: 700; }
+.ad-stat-label { font-size: 12px; color: var(--text-soft); margin-top: 1px; }
+.ad-stat.alert .ad-stat-num { color: var(--red); }
+
+.ad-overview-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 860px) { .ad-overview-grid { grid-template-columns: 1fr; } }
+
+.ad-person-block { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.ad-person-block:last-child { border-bottom: none; }
+.ad-person-name { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.ad-task-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13px; padding: 4px 0;
+}
+.ad-task-row .txt { flex: 1; }
+.ad-task-row .meta { color: var(--text-faint); font-size: 11.5px; margin-top: 1px; }
+
+.ad-upcoming-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.ad-upcoming-row:last-child { border-bottom: none; }
+.ad-upcoming-date { font-weight: 700; font-size: 12.5px; min-width: 44px; }
+.ad-days-tag {
+  font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 10px;
+  white-space: nowrap;
+}
+.ad-days-tag.soon { background: var(--red-soft); color: var(--red); }
+.ad-days-tag.near { background: var(--amber-soft); color: var(--amber); }
+.ad-days-tag.later { background: #F0F1F3; color: var(--text-soft); }
+
+.ad-attn-row {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.ad-attn-row:last-child { border-bottom: none; }
+
+/* ---- board ---- */
+.ad-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+.ad-col { padding: 12px; }
+.ad-col-head { margin-bottom: 8px; }
+.ad-col-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.ad-person-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.ad-col-role { color: var(--text-soft); font-size: 11.5px; margin-bottom: 8px; }
+.ad-task-card {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 10px;
+  margin-bottom: 7px;
+}
+.ad-task-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.ad-task-title.done { text-decoration: line-through; color: var(--text-faint); }
+.ad-task-meta-row { font-size: 11.5px; color: var(--text-soft); margin-top: 3px; }
+.ad-status-select {
+  width: 100%; font-family: inherit; font-size: 12px; font-weight: 600;
+  padding: 5px 7px; margin-top: 7px; border: 1px solid var(--border); border-radius: 6px;
+  background: #FAFBFC; color: var(--text); cursor: pointer;
+}
+.ad-due-wrap { margin-top: 7px; }
+.ad-due-wrap label { display: block; font-size: 10.5px; font-weight: 600; color: var(--text-soft); margin-bottom: 3px; }
+.ad-due-input {
+  width: 100%; font-family: inherit; font-size: 12px; padding: 5px 7px;
+  border: 1px solid var(--border); border-radius: 6px; color: var(--text); background: #fff;
+}
+.ad-task-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; }
+
+/* ---- calendar ---- */
+.ad-cal-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 860px) { .ad-cal-layout { grid-template-columns: 1fr; } }
+
+.ad-cal-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+}
+.ad-cal-nav-btns { display: flex; align-items: center; gap: 4px; }
+.ad-cal-icon-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--panel); cursor: pointer; font-size: 13px; color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+}
+.ad-cal-icon-btn:hover { background: #F0F1F3; }
+.ad-cal-month-label { font-weight: 700; font-size: 15px; }
+
+.ad-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+.ad-cal-dow {
+  background: #FAFBFC; color: var(--text-soft); font-size: 10.5px; font-weight: 700;
+  text-align: center; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.ad-cal-day {
+  background: var(--panel); min-height: 76px; padding: 5px 6px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden;
+}
+.ad-cal-day:hover { background: #FAFBFC; }
+.ad-cal-day.other-month { background: #FCFCFD; }
+.ad-cal-day.other-month .ad-cal-daynum { color: var(--text-faint); }
+.ad-cal-day.today .ad-cal-daynum {
+  background: var(--blue); color: #fff; border-radius: 50%;
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+}
+.ad-cal-day.selected { background: var(--blue-soft); }
+.ad-cal-daynum { font-size: 11.5px; font-weight: 600; }
+.ad-cal-pill {
+  font-size: 10px; padding: 1px 5px; border-radius: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  width: 100%; min-width: 0; box-sizing: border-box; flex-shrink: 0;
+}
+.ad-cal-more { font-size: 9.5px; color: var(--text-faint); }
+
+.ad-cal-side-head { font-weight: 700; font-size: 13.5px; margin-bottom: 8px; }
+.ad-cal-day-event {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;
+  padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12.5px;
+}
+.ad-cal-day-event:last-child { border-bottom: none; }
+.ad-cal-legend { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 10px 12px; border-top: 1px solid var(--border); }
+.ad-cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-soft); }
+.ad-cal-legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* ---- ideas ---- */
+.ad-idea-card {
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.ad-idea-card:last-child { border-bottom: none; }
+.ad-idea-star {
+  background: none; border: none; cursor: pointer; font-size: 20px; line-height: 1;
+  color: var(--text-faint); padding: 2px; flex-shrink: 0;
+}
+.ad-idea-star.on { color: var(--amber); }
+.ad-idea-body { flex: 1; min-width: 0; }
+.ad-idea-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.ad-idea-title { font-size: 14px; font-weight: 700; }
+.ad-idea-ask { font-size: 12.5px; color: var(--text-soft); font-weight: 600; white-space: nowrap; }
+.ad-idea-desc { font-size: 12.5px; color: var(--text-soft); margin-top: 4px; }
+.ad-idea-meta-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.ad-idea-vote-btn {
+  display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--panel); border-radius: 6px;
+  padding: 4px 10px; cursor: pointer; color: var(--text);
+}
+.ad-idea-vote-btn:hover { background: #F0F1F3; }
+.ad-idea-added-tag { font-size: 11px; font-weight: 600; color: var(--green); }
+
+/* ---- decisions ---- */
+.ad-decision {
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+}
+.ad-decision:last-child { border-bottom: none; }
+.ad-decision-q { font-size: 13.5px; font-weight: 600; margin: 4px 0 4px; }
+.ad-decision-meta { font-size: 11.5px; color: var(--text-soft); }
+.ad-decision-res {
+  margin-top: 7px; padding: 8px 10px; background: var(--green-soft); border-radius: 6px;
+  font-size: 12.5px; color: #1F5C39;
+}
+
+.ad-toolbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 10px; }
+.ad-loading { text-align: center; padding: 50px; color: var(--text-faint); }
+.ad-add-wrap { margin-bottom: 10px; max-width: 260px; }
+
+/* ---- campaigns ---- */
+.ad-campaign-block { margin-bottom: 26px; }
+.ad-campaign-toolbar-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.ad-spreadsheet-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+table.ad-spreadsheet { border-collapse: collapse; width: 100%; font-size: 12.5px; white-space: nowrap; }
+table.ad-spreadsheet th {
+  background: #FAFBFC; text-align: left; padding: 7px 10px; font-weight: 700;
+  color: var(--text-soft); border-bottom: 1px solid var(--border); position: sticky; top: 0;
+}
+table.ad-spreadsheet td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+table.ad-spreadsheet tr:last-child td { border-bottom: none; }
+table.ad-spreadsheet tr:nth-child(even) td { background: #FBFBFC; }
+.ad-upload-meta { font-size: 12px; color: var(--text-soft); }
+.ad-filter-input {
+  font-family: inherit; font-size: 12.5px; padding: 6px 8px;
+  border: 1px solid var(--border); border-radius: 6px; color: var(--text); background: #fff;
+}
+.ad-filter-label { display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--text-soft); }
+.ad-tag-btn-group { display: flex; gap: 3px; }
+.ad-tag-btn {
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+  border: 1px solid var(--border); background: #fff; cursor: pointer; color: var(--text-faint);
+}
+.ad-tag-btn:hover { background: #F0F1F3; color: var(--text); }
+.ad-tag-btn.active-high { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); }
+.ad-tag-btn.active-new { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
+.ad-tag-btn.active-recurring { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.ad-request-row {
+  padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.ad-request-row:last-child { border-bottom: none; }
+.ad-request-meta { font-size: 11.5px; color: var(--text-soft); margin-top: 3px; }
+
+/* ---- identity / sync / activity ---- */
+.ad-identity-overlay {
+  position: fixed; inset: 0; background: rgba(20,22,28,0.45); z-index: 90;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.ad-identity-card {
+  background: var(--panel); border-radius: 10px; padding: 20px; max-width: 360px; width: 100%;
+  box-shadow: 0 12px 40px rgba(20,22,28,0.25);
+}
+.ad-identity-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+.ad-identity-desc { font-size: 12.5px; color: var(--text-soft); margin-bottom: 12px; }
+.ad-whoami {
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-soft);
+}
+.ad-whoami button { background: none; border: none; color: var(--blue); font-size: 12px; cursor: pointer; padding: 0; }
+.ad-sync-row { display: flex; align-items: center; gap: 8px; }
+.ad-sync-btn {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--panel); cursor: pointer; font-size: 14px; color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+}
+.ad-sync-btn:hover { background: #F0F1F3; }
+.ad-sync-btn.spinning { animation: ad-spin 0.6s linear; }
+@keyframes ad-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.ad-sync-meta { font-size: 11px; color: var(--text-faint); }
+.ad-attribution { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+.ad-activity-row { padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.ad-activity-row:last-child { border-bottom: none; }
+.ad-activity-row .who { font-weight: 700; }
+.ad-activity-row .when { color: var(--text-faint); font-size: 11px; }
+.ad-callout {
+  background: var(--amber-soft); border: 1px solid #E3C583; border-radius: 8px;
+  padding: 10px 12px; font-size: 12.5px; color: #6B4A12; margin-bottom: 10px; white-space: pre-line;
+}
+.ad-callout b { display: block; margin-bottom: 4px; }
+.ad-locked-btn { opacity: 0.5; cursor: not-allowed; }
+</style>
+
+<div class="ad-root" id="adRoot">
+  <div class="ad-header">
+    <div class="ad-title-row">
+      <div class="ad-title-left">
+        <button class="ad-menu-btn" id="adMenuBtn" title="Menu" aria-label="Open menu">☰</button>
+        <div>
+          <div class="ad-title">DP Dashboard</div>
+          <div class="ad-subtitle">Team board, calendar, ideas, decisions &amp; campaigns</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div class="ad-whoami" id="adWhoAmI"></div>
+        <div class="ad-sync-row">
+          <button class="ad-sync-btn" id="adSyncBtn" title="Refresh — pull the latest from everyone else">⟳</button>
+          <div>
+            <div class="ad-today" id="adDate"></div>
+            <div class="ad-sync-meta" id="adSyncMeta"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-identity-overlay" id="adIdentityOverlay" style="display:none;"></div>
+
+  <div class="ad-sidebar-overlay" id="adSidebarOverlay"></div>
+  <nav class="ad-sidebar" id="adSidebar">
+    <div class="ad-sidebar-head">
+      <div class="ad-sidebar-title">Menu</div>
+      <button class="ad-sidebar-close" id="adSidebarClose" aria-label="Close menu">✕</button>
+    </div>
+    <button class="ad-nav-item active" data-tab="overview">Overview</button>
+    <button class="ad-nav-item" data-tab="board">Team Board</button>
+    <button class="ad-nav-item" data-tab="calendar">Calendar</button>
+    <button class="ad-nav-item" data-tab="ideas">Ideas</button>
+    <button class="ad-nav-item" data-tab="decisions">Decisions</button>
+    <div class="ad-nav-group">
+      <button class="ad-nav-item ad-nav-parent" data-tab="campaigns-annual">Campaigns</button>
+      <div class="ad-nav-sub">
+        <button class="ad-nav-subitem" data-tab="campaigns-annual">Annual</button>
+        <button class="ad-nav-subitem" data-tab="campaigns-capital">Capital</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="ad-main">
+    <div id="adLoading" class="ad-loading">Loading board…</div>
+
+    <section class="ad-panel active" id="panel-overview">
+      <div class="ad-stats" id="adStats"></div>
+      <div class="ad-overview-grid">
+        <div>
+          <div class="ad-section-title">Working on now</div>
+          <div class="ad-section-desc">Active tasks per person (done items hidden)</div>
+          <div class="ad-card" id="adWorkingNow"></div>
+          <div class="ad-section-title" style="margin-top:18px;">Recent activity</div>
+          <div class="ad-section-desc">Who changed what, most recent first</div>
+          <div class="ad-card" id="adActivityLog"></div>
+        </div>
+        <div>
+          <div class="ad-section-title">Coming up</div>
+          <div class="ad-section-desc">Next deadlines on the calendar</div>
+          <div class="ad-card" id="adComingUp" style="margin-bottom:18px;"></div>
+          <div class="ad-section-title">Needs attention</div>
+          <div class="ad-section-desc">Blocked tasks, open dependencies &amp; open decisions</div>
+          <div class="ad-card" id="adNeedsAttention"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ad-panel" id="panel-board">
+      <div class="ad-toolbar">
+        <div>
+          <div class="ad-section-title">Team Board</div>
+          <div class="ad-section-desc">What each person is working on, what's due, what they're waiting on</div>
+        </div>
+      </div>
+      <div class="ad-board-grid" id="adBoardGrid"></div>
+    </section>
+
+    <section class="ad-panel" id="panel-calendar">
+      <div class="ad-toolbar">
+        <div>
+          <div class="ad-section-title">Calendar</div>
+          <div class="ad-section-desc">Appeals, comms, volunteer milestones, stewardship, alumni outreach &amp; reporting deadlines</div>
+        </div>
+      </div>
+      <div class="ad-cal-layout">
+        <div class="ad-card">
+          <div class="ad-cal-nav">
+            <div class="ad-cal-month-label" id="adCalMonthLabel"></div>
+            <div class="ad-cal-nav-btns">
+              <button class="ad-cal-icon-btn" id="adCalToday">Today</button>
+              <button class="ad-cal-icon-btn" id="adCalPrev">‹</button>
+              <button class="ad-cal-icon-btn" id="adCalNext">›</button>
+            </div>
+          </div>
+          <div class="ad-cal-grid" id="adCalGrid"></div>
+          <div class="ad-cal-legend" id="adCalLegend"></div>
+          <div class="ad-cal-legend" id="adCalTeamLegend"></div>
+        </div>
+        <div class="ad-card" style="padding:14px;">
+          <div class="ad-cal-side-head" id="adCalSideHead"></div>
+          <div id="adCalSideList"></div>
+          <div id="adCalSideForm" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ad-panel" id="panel-ideas">
+      <div class="ad-toolbar">
+        <div>
+          <div class="ad-section-title">Ideas</div>
+          <div class="ad-section-desc">Fundable programs &amp; project ideas — star or upvote the good ones, add dates, and push to the calendar when ready</div>
+        </div>
+      </div>
+      <div class="ad-add-wrap"><button class="ad-btn dashed" id="adAddIdeaBtn">+ Add idea</button></div>
+      <div id="adIdeaForm"></div>
+      <div class="ad-card" id="adIdeaList"></div>
+    </section>
+
+    <section class="ad-panel" id="panel-decisions">
+      <div class="ad-toolbar">
+        <div>
+          <div class="ad-section-title">Decisions Needed</div>
+          <div class="ad-section-desc">Open calls that need a ruling, and the record of what was decided</div>
+        </div>
+      </div>
+      <div class="ad-add-wrap"><button class="ad-btn dashed" id="adAddDecBtn">+ Flag decision</button></div>
+      <div id="adDecForm"></div>
+      <div class="ad-card" id="adDecList"></div>
+    </section>
+
+    <section class="ad-panel" id="panel-campaigns-annual">
+      <div id="campaignRoot-annual"></div>
+    </section>
+
+    <section class="ad-panel" id="panel-campaigns-capital">
+      <div id="campaignRoot-capital"></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  const PEOPLE = [
+    { key: 'kristina', name: 'Kristina', role: 'OP & Database' },
+    { key: 'itdamar', name: 'Itamar', role: 'Donor Outreach, Annual Fund' },
+    { key: 'lexi', name: 'Lexi', role: 'Communications' },
+    { key: 'yasha', name: 'Yasha', role: 'Alumni Engagement & Volunteers' },
+  ];
+
+  const SEED_TASKS = [
+    { person: 'kristina', title: 'Deeper research on gift records & prospect research', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'kristina', title: 'Annual fund: gifts by month vs. prior years', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'kristina', title: 'Track cash commitments & pledges (installments)', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'kristina', title: 'Donor counts, campaign structure, appeal structure', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'itdamar', title: "Donor outreach via Raiser's Edge — appeal timing, audience, revenue, avg gift", status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'itdamar', title: 'Leadership donor upgrade opportunities & audience gaps', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'itdamar', title: 'Review appeal frequency', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'itdamar', title: 'Annual fund strategy — data + thinking', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'lexi', title: 'Website + donor/alumni comms (with Itamar)', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'lexi', title: 'Audit capital campaign content — more of / less of', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'lexi', title: 'Newsletter cadence — ramp up & maintain continuity', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'yasha', title: 'Map current volunteer opportunity areas', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'yasha', title: 'Launch volunteer program with board member + president; build volunteer & alumni-expertise inventory', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'yasha', title: 'Plan for keeping the program active', status: 'in-progress', due: '', waitingOn: '' },
+    { person: 'yasha', title: 'Gap analysis + recommendations', status: 'in-progress', due: '', waitingOn: '' },
+  ];
+
+  const STATUS_LABEL = { 'in-progress': 'In progress', 'waiting': 'Waiting', 'blocked': 'Blocked', 'done': 'Done' };
+  const CATEGORIES = ['Capital Fund', 'Annual Fund', 'Volunteer', 'Other'];
+  const CATEGORY_STYLE = {
+    'Capital Fund': { bg: 'var(--blue-soft)', fg: 'var(--blue)' },
+    'Annual Fund': { bg: 'var(--green-soft)', fg: 'var(--green)' },
+    'Volunteer': { bg: 'var(--amber-soft)', fg: 'var(--amber)' },
+    'Other': { bg: '#F0F1F3', fg: '#4B5563' },
+  };
+
+  // Fixed, auto-assigned colors — deliberately distinct from the Idea-type colors
+  // (which use blue/purple/amber/red/gray) so the two systems never look alike.
+  const PERSON_COLORS = { kristina: '#0E7C86', itdamar: '#C23B79', lexi: '#C2600F', yasha: '#4338CA' };
+
+  const IDEA_TYPES = ['Capital Funds', 'Annual Funds', 'Ambassador Programs', 'Other'];
+  const IDEA_TYPE_STYLE = {
+    'Capital Funds': { bg: 'var(--blue-soft)', fg: 'var(--blue)' },
+    'Annual Funds': { bg: 'var(--green-soft)', fg: 'var(--green)' },
+    'Ambassador Programs': { bg: 'var(--purple-soft)', fg: 'var(--purple)' },
+    'Other': { bg: '#F0F1F3', fg: '#4B5563' },
+  };
+  const SEED_IDEAS = [
+    { title: 'Sports Coverage Fund', type: 'Annual Funds', ask: '$13,000/yr', description: "Covers travel and reporting tools for all sports beats. Named, renewable annually." },
+    { title: 'Named Beat Fund', type: 'Annual Funds', ask: '$5,000–$8,000/beat/yr', description: "Penn Administration, Philadelphia City Hall, Penn Athletics, Health and Science, Housing and Community. One donor funds one beat for one year. Includes mid-year briefing and year-end story summary. Renewable." },
+    { title: 'Newsroom Technology Fund', type: 'Annual Funds', ask: '$30,000/yr', description: "Full digital stack across all departments — content management, design, photo, social, and reporting tools. Named, renewable. Corporate naming opportunity available." },
+    { title: 'News and Editorial Reporting Fund', type: 'Annual Funds', ask: '$5,000–$8,000/yr', description: "Professional subscriptions and research tools across News, Sports, and Editorial." },
+    { title: '34th Street Magazine Fund', type: 'Annual Funds', ask: '$25,000–$40,000/yr', description: "Covers production, printing, delivery, and reporting for the DP's longform and feature magazine. Named, renewable annually." },
+    { title: 'Under the Button Fund', type: 'Annual Funds', ask: '$5,000/yr', description: "Full operating support for the DP's satire publication — production, printing, and distribution. Named, renewable annually." },
+    { title: 'Marquez Conference', type: 'Annual Funds', ask: '$5,000–$10,000/yr', description: "Annual fall journalism training for all DP staff. Named giving opportunity covering speakers, materials, and full program." },
+    { title: 'Alumni Training Day', type: 'Annual Funds', ask: '$8,000–$12,000/yr', description: "Held each January. Alumni from major national outlets spend a full day training current board members. No dedicated funding exists today. Named giving opportunity." },
+    { title: 'Annual Banquet', type: 'Annual Funds', ask: '$25,000–$40,000 gross', description: "Existing Staff Banquet reimagined as a signature annual fundraising event. Revenue through table sponsorships, individual tickets, a program journal, and a live fund-a-need." },
+    { title: 'Civic and Political Coverage Initiative', type: 'Other', ask: '$20,000/cycle', description: "Funds a student editorial lead, data tools, and travel for dedicated coverage of the 2026 midterms, PA legislative races, Philly City Council, and Penn governance. Full cycle, defined deliverables, clean end date." },
+    { title: 'Newsletter Initiative', type: 'Other', ask: '$12,000–$15,000', description: "Year-one launch funding for a new DP publication newsletter. Student editor stipend, platform costs, subscriber growth target, sponsorship model by year-end." },
+    { title: 'Quaker Creative Expansion', type: 'Other', ask: '$15,000–$25,000', description: "Student-run creative and branded content studio. Funds a student business director, expanded client outreach, and a formal revenue growth plan." },
+    { title: 'AI Newsroom Tool', type: 'Other', ask: '$12,000–$18,000', description: "One-year pilot with a Penn student developer to build AI monitoring/aggregation of Penn coverage across outlets. Deliverable: working tool + editorial impact report at year-end." },
+  ];
+
+  let state = { tasks: [], events: [], ideas: [], decisions: [], donorRows: {}, activityLog: [] };
+  let nextId = 1;
+  const uid = () => 'id' + (nextId++) + '-' + Math.random().toString(36).slice(2,7);
+  let currentUser = { name: '', role: '' };
+  const ROLE_OPTIONS = ['Kristina', 'Itamar', 'Lexi', 'Yasha', 'Admin / Manager'];
+
+  async function loadAll() {
+    const keys = ['tasks', 'events', 'ideas', 'decisions', 'donorRows', 'activityLog'];
+    for (const k of keys) {
+      try {
+        const r = await window.storage.get('dp-adv-' + k, true);
+        state[k] = r && r.value ? JSON.parse(r.value) : null;
+      } catch (e) { state[k] = null; }
+    }
+    if (!state.tasks) { state.tasks = SEED_TASKS.map(t => ({ ...t, id: uid() })); await save('tasks'); }
+    if (!state.events) state.events = [];
+    if (!state.ideas) {
+      state.ideas = SEED_IDEAS.map(i => ({ ...i, id: uid(), votes: 0, starred: false, targetDate: '', addedToCalendar: false }));
+      await save('ideas');
+    }
+    if (!state.decisions) state.decisions = [];
+    if (!state.donorRows) { state.donorRows = { annual: [], capital: [] }; await save('donorRows'); }
+    if (!state.donorRows.annual) state.donorRows.annual = [];
+    if (!state.donorRows.capital) state.donorRows.capital = [];
+    if (!state.activityLog) state.activityLog = [];
+    ['annual', 'capital'].forEach(k => {
+      state.donorRows[k] = state.donorRows[k].map(r => ({
+        ...r,
+        _rowId: r._rowId || uid(),
+        _tag: r._tag || '',
+        _reportDate: r._reportDate || r._uploadedAt || todayStr(),
+        _uploadedAt: r._uploadedAt || todayStr(),
+      }));
+    });
+  }
+
+  async function logActivity(text) {
+    const entry = { ts: new Date().toISOString(), name: currentUser.name || 'Someone', role: currentUser.role || '', text };
+    state.activityLog = [entry, ...state.activityLog].slice(0, 60);
+    await save('activityLog');
+    renderActivityLog();
+  }
+
+  function renderActivityLog() {
+    const el = document.getElementById('adActivityLog');
+    if (!el) return;
+    if (!state.activityLog.length) { el.innerHTML = '<div class="ad-empty">No activity yet.</div>'; return; }
+    el.innerHTML = state.activityLog.slice(0, 12).map(a => {
+      const dt = new Date(a.ts);
+      const when = isNaN(dt) ? '' : dt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      return `<div class="ad-activity-row"><span class="who">${esc(a.name)}</span> ${esc(a.text)}<div class="when">${esc(when)}</div></div>`;
+    }).join('');
+  }
+
+  // ---------- IDENTITY ----------
+  function isAdmin() { return currentUser.role === 'Admin / Manager'; }
+  function canRemove(item) { return isAdmin() || (item && item.createdBy && item.createdBy === currentUser.name); }
+
+  async function loadIdentity() {
+    try {
+      const r = await window.storage.get('dp-adv-whoami', false);
+      if (r && r.value) currentUser = JSON.parse(r.value);
+    } catch (e) { /* not set yet */ }
+  }
+  async function saveIdentity(name, role) {
+    currentUser = { name, role };
+    try { await window.storage.set('dp-adv-whoami', JSON.stringify(currentUser), false); }
+    catch (e) { console.error('Could not save identity', e); }
+  }
+
+  function renderWhoAmI() {
+    const el = document.getElementById('adWhoAmI');
+    if (!currentUser.name) { el.innerHTML = ''; return; }
+    el.innerHTML = `${esc(currentUser.name)}${currentUser.role ? ' · ' + esc(currentUser.role) : ''} <button id="adSwitchWho">switch</button>`;
+    document.getElementById('adSwitchWho').addEventListener('click', () => openIdentityModal(() => renderAllPanels()));
+  }
+
+  function openIdentityModal(onDone) {
+    const overlay = document.getElementById('adIdentityOverlay');
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="ad-identity-card">
+        <div class="ad-identity-title">Who's this?</div>
+        <div class="ad-identity-desc">So edits and requests can be attributed to the right person. This is saved on your device only.</div>
+        <div class="ad-form">
+          <label>Your name</label>
+          <input type="text" class="f-id-name" value="${esc(currentUser.name || '')}" placeholder="e.g. Lexi">
+          <label>Your role</label>
+          <select class="f-id-role">${ROLE_OPTIONS.map(r => `<option ${r === currentUser.role ? 'selected' : ''}>${r}</option>`).join('')}</select>
+          <div class="ad-form-actions">
+            <button class="ad-btn primary f-id-save">Continue</button>
+          </div>
+        </div>
+      </div>
+    `;
+    overlay.querySelector('.f-id-save').addEventListener('click', async () => {
+      const name = overlay.querySelector('.f-id-name').value.trim();
+      const role = overlay.querySelector('.f-id-role').value;
+      if (!name) return;
+      await saveIdentity(name, role);
+      overlay.style.display = 'none';
+      overlay.innerHTML = '';
+      renderWhoAmI();
+      if (onDone) onDone();
+    });
+  }
+
+  function syncTaskEvent(t) {
+    state.events = state.events.filter(e => e.sourceTaskId !== t.id);
+    if (t.status === 'in-progress' && t.due) {
+      state.events.push({
+        id: uid(), title: t.title, date: t.due, category: 'Team Task',
+        owner: personName(t.person), personKey: t.person, sourceTaskId: t.id
+      });
+    }
+  }
+
+  async function save(key) {
+    try { await window.storage.set('dp-adv-' + key, JSON.stringify(state[key]), true); }
+    catch (e) { console.error('Save failed for', key, e); }
+  }
+
+  function fmtDate(d) {
+    if (!d) return '';
+    const dt = new Date(d + 'T00:00:00');
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function daysUntil(d) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dt = new Date(d + 'T00:00:00');
+    return Math.round((dt - today) / 86400000);
+  }
+  function esc(s) {
+    const div = document.createElement('div');
+    div.textContent = s || '';
+    return div.innerHTML;
+  }
+  function personName(key) { const p = PEOPLE.find(p => p.key === key); return p ? p.name : key; }
+
+  // ---------- OVERVIEW ----------
+  function renderOverview() {
+    const active = state.tasks.filter(t => t.status !== 'done');
+    const blocked = state.tasks.filter(t => t.status === 'blocked');
+    const upcoming90 = state.events.filter(e => e.date && daysUntil(e.date) >= 0 && daysUntil(e.date) <= 90);
+    const openDecisions = state.decisions.filter(d => d.status !== 'decided');
+    const topIdeas = [...state.ideas].filter(i => !i.addedToCalendar).sort((a,b) => (b.starred - a.starred) || (b.votes - a.votes)).slice(0, 2);
+
+    const stats = document.getElementById('adStats');
+    stats.innerHTML = `
+      <div class="ad-card ad-stat"><div class="ad-stat-num">${active.length}</div><div class="ad-stat-label">Active tasks</div></div>
+      <div class="ad-card ad-stat ${blocked.length ? 'alert' : ''}"><div class="ad-stat-num">${blocked.length}</div><div class="ad-stat-label">Blocked</div></div>
+      <div class="ad-card ad-stat"><div class="ad-stat-num">${upcoming90.length}</div><div class="ad-stat-label">Deadlines in 90 days</div></div>
+      <div class="ad-card ad-stat ${openDecisions.length ? 'alert' : ''}"><div class="ad-stat-num">${openDecisions.length}</div><div class="ad-stat-label">Open decisions</div></div>
+    `;
+
+    const wn = document.getElementById('adWorkingNow');
+    wn.innerHTML = '';
+    PEOPLE.forEach(p => {
+      const tasks = state.tasks.filter(t => t.person === p.key && t.status !== 'done');
+      const block = document.createElement('div');
+      block.className = 'ad-person-block';
+      block.innerHTML = `<div class="ad-person-name">${p.name}</div>` + (tasks.length ? tasks.map(t => `
+        <div class="ad-task-row">
+          <span class="ad-badge ${t.status}"><span class="ad-dot"></span>${STATUS_LABEL[t.status]}</span>
+          <div class="txt">${esc(t.title)}${t.due ? `<div class="meta">Due ${esc(fmtDate(t.due))}</div>` : ''}${t.waitingOn ? `<div class="meta">Waiting on ${esc(t.waitingOn)}</div>` : ''}</div>
+        </div>`).join('') : '<div style="color:var(--text-faint);font-size:12.5px;">Nothing active</div>');
+      wn.appendChild(block);
+    });
+
+    const cu = document.getElementById('adComingUp');
+    const sortedUpcoming = [...state.events].filter(e => e.date).sort((a,b) => a.date.localeCompare(b.date)).slice(0, 8);
+    if (!sortedUpcoming.length) {
+      cu.innerHTML = '<div class="ad-empty">No deadlines added yet — add them in the Calendar tab.</div>';
+    } else {
+      cu.innerHTML = sortedUpcoming.map(e => {
+        const du = daysUntil(e.date);
+        const tag = du < 0 ? `<span class="ad-days-tag soon">Overdue</span>` : du <= 7 ? `<span class="ad-days-tag soon">${du}d</span>` : du <= 21 ? `<span class="ad-days-tag near">${du}d</span>` : `<span class="ad-days-tag later">${du}d</span>`;
+        return `<div class="ad-upcoming-row">
+          <div class="ad-upcoming-date">${esc(fmtDate(e.date))}</div>
+          <div style="flex:1;">${esc(e.title)}<div class="ad-dep-meta">${esc(e.category)}${e.owner ? ' · ' + esc(e.owner) : ''}</div></div>
+          ${tag}
+        </div>`;
+      }).join('');
+    }
+
+    const na = document.getElementById('adNeedsAttention');
+    const items = [];
+    blocked.forEach(t => items.push(`<div class="ad-attn-row"><span>🔴 <b>${esc(personName(t.person))}</b> — ${esc(t.title)}</span></div>`));
+    openDecisions.forEach(d => items.push(`<div class="ad-attn-row"><span>❓ ${esc(d.question)}</span>${d.dueDate ? `<span class="ad-days-tag near">${esc(fmtDate(d.dueDate))}</span>` : ''}</div>`));
+    topIdeas.forEach(i => items.push(`<div class="ad-attn-row"><span>💡 Top idea: <b>${esc(i.title)}</b>${i.votes ? ` (${i.votes} vote${i.votes===1?'':'s'})` : ''} — not on the calendar yet</span></div>`));
+    na.innerHTML = items.length ? items.join('') : '<div class="ad-empty">Nothing flagged — everything is moving.</div>';
+  }
+
+  // ---------- BOARD ----------
+  function renderBoard() {
+    const grid = document.getElementById('adBoardGrid');
+    grid.innerHTML = '';
+    PEOPLE.forEach(p => {
+      const col = document.createElement('div');
+      col.className = 'ad-card ad-col';
+      const color = PERSON_COLORS[p.key] || '#475569';
+      const tasks = state.tasks.filter(t => t.person === p.key);
+      col.innerHTML = `
+        <div class="ad-col-head">
+          <div class="ad-col-name"><span class="ad-person-dot" style="background:${color};"></span>${p.name}</div>
+          <div class="ad-col-role">${p.role}</div>
+        </div>
+        <div class="ad-col-cards"></div>
+        <button class="ad-btn dashed" data-person="${p.key}">+ Add task</button>
+        <div class="ad-col-form"></div>
+      `;
+      const cardsWrap = col.querySelector('.ad-col-cards');
+      tasks.forEach(t => cardsWrap.appendChild(taskCard(t, color)));
+      grid.appendChild(col);
+      col.querySelector('.ad-btn.dashed').addEventListener('click', () => showTaskForm(col, p.key));
+    });
+  }
+
+  function taskCard(t, color) {
+    const el = document.createElement('div');
+    el.className = 'ad-task-card';
+    el.style.borderLeft = `4px solid ${color}`;
+    const order = ['in-progress', 'waiting', 'blocked', 'done'];
+    const removable = canRemove(t);
+    el.innerHTML = `
+      <div class="ad-task-title ${t.status === 'done' ? 'done' : ''}">${esc(t.title)}</div>
+      ${t.waitingOn ? `<div class="ad-task-meta-row">Waiting on ${esc(t.waitingOn)}</div>` : ''}
+      ${t.requesterName ? `<div class="ad-task-meta-row">Requested by ${esc(t.requesterName)}${t.requesterEmail ? ' · ' + esc(t.requesterEmail) : ''}${t.requesterPhone ? ' · ' + esc(t.requesterPhone) : ''}${t.campaign ? ' · ' + esc(t.campaign === 'annual' ? 'Annual Campaign' : 'Capital Campaign') : ''}</div>` : ''}
+      <select class="ad-status-select">
+        ${order.map(s => `<option value="${s}" ${t.status === s ? 'selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}
+      </select>
+      <div class="ad-due-wrap" style="display:${t.status === 'in-progress' ? 'block' : 'none'};">
+        <label>Due date ${t.status === 'in-progress' && t.due ? '<span style="color:var(--green);font-weight:600;">· on calendar</span>' : ''}</label>
+        <input type="date" class="ad-due-input" value="${t.due || ''}">
+      </div>
+      ${t.createdBy ? `<div class="ad-attribution">Added by ${esc(t.createdBy)}${t.lastEditedBy && t.lastEditedBy !== t.createdBy ? ' · last touched by ' + esc(t.lastEditedBy) : ''}</div>` : ''}
+      <div class="ad-task-foot">
+        <span></span>
+        <button class="ad-btn ghost danger del ${removable ? '' : 'ad-locked-btn'}" ${removable ? '' : 'title="Only the creator or an admin can remove this"'}>Remove</button>
+      </div>
+    `;
+    el.querySelector('.ad-status-select').addEventListener('change', async (e) => {
+      t.status = e.target.value;
+      t.lastEditedBy = currentUser.name || t.lastEditedBy;
+      syncTaskEvent(t);
+      await save('tasks'); await save('events'); renderBoard(); renderCalendar(); renderOverview(); refreshCampaignRequestLists();
+      logActivity(`changed "${t.title.slice(0, 60)}" to ${STATUS_LABEL[t.status]}`);
+    });
+    const dueInput = el.querySelector('.ad-due-input');
+    if (dueInput) dueInput.addEventListener('change', async (e) => {
+      t.due = e.target.value;
+      t.lastEditedBy = currentUser.name || t.lastEditedBy;
+      syncTaskEvent(t);
+      await save('tasks'); await save('events'); renderBoard(); renderCalendar(); renderOverview(); refreshCampaignRequestLists();
+      logActivity(`set a due date on "${t.title.slice(0, 60)}"`);
+    });
+    el.querySelector('.del').addEventListener('click', async () => {
+      if (!canRemove(t)) { alert('Only the person who added this task, or an admin, can remove it.'); return; }
+      state.tasks = state.tasks.filter(x => x.id !== t.id);
+      state.events = state.events.filter(e => e.sourceTaskId !== t.id);
+      await save('tasks'); await save('events'); renderBoard(); renderCalendar(); renderOverview(); refreshCampaignRequestLists();
+      logActivity(`removed task "${t.title.slice(0, 60)}"`);
+    });
+    return el;
+  }
+
+  function showTaskForm(col, personKey) {
+    const wrap = col.querySelector('.ad-col-form');
+    if (wrap.innerHTML) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `
+      <div class="ad-form">
+        <label>Task</label>
+        <textarea class="f-title" placeholder="What are they working on?"></textarea>
+        <label>Due date (optional)</label>
+        <input class="f-due" type="date">
+        <label>Waiting on (optional)</label>
+        <input class="f-wait" type="text" placeholder="e.g. Lexi's newsletter draft">
+        <div class="ad-form-actions">
+          <button class="ad-btn primary f-save">Add</button>
+          <button class="ad-btn f-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+    wrap.querySelector('.f-cancel').addEventListener('click', () => wrap.innerHTML = '');
+    wrap.querySelector('.f-save').addEventListener('click', async () => {
+      const title = wrap.querySelector('.f-title').value.trim();
+      if (!title) return;
+      const newTask = { id: uid(), person: personKey, title, status: 'in-progress',
+        due: wrap.querySelector('.f-due').value, waitingOn: wrap.querySelector('.f-wait').value.trim(),
+        createdBy: currentUser.name, lastEditedBy: currentUser.name };
+      state.tasks.push(newTask);
+      syncTaskEvent(newTask);
+      await save('tasks'); await save('events'); renderBoard(); renderCalendar(); renderOverview(); refreshCampaignRequestLists();
+      logActivity(`added a task for ${personName(personKey)}: "${title.slice(0, 60)}"`);
+    });
+  }
+
+  // ---------- CALENDAR (month grid) ----------
+  function bindOtherToggle(selectEl, otherInputEl) {
+    const toggle = () => { otherInputEl.style.display = selectEl.value === 'Other' ? 'block' : 'none'; };
+    selectEl.addEventListener('change', toggle);
+    toggle();
+  }
+  function resolveCategory(selectEl, otherInputEl) {
+    if (selectEl.value === 'Other') {
+      const v = otherInputEl.value.trim();
+      return v || 'Other';
+    }
+    return selectEl.value;
+  }
+  function todayStr() { const d = new Date(); return d.toISOString().slice(0,10); }
+  let calMonth = (function(){ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
+  let calSelected = todayStr();
+
+  function eventStyle(e) {
+    if (e.personKey) {
+      const color = PERSON_COLORS[e.personKey] || '#475569';
+      return { bg: color, fg: '#fff' };
+    }
+    return CATEGORY_STYLE[e.category] || CATEGORY_STYLE['Other'];
+  }
+
+  function dateKey(y, m, d) {
+    const dt = new Date(y, m, d);
+    return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+  }
+
+  function renderCalendar() { renderCalGrid(); renderCalSide(); }
+
+  function renderCalGrid() {
+    document.getElementById('adCalMonthLabel').textContent = calMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const grid = document.getElementById('adCalGrid');
+    grid.innerHTML = '';
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+      const el = document.createElement('div'); el.className = 'ad-cal-dow'; el.textContent = d; grid.appendChild(el);
+    });
+    const year = calMonth.getFullYear(), month = calMonth.getMonth();
+    const firstDow = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    const cells = [];
+    for (let i = firstDow - 1; i >= 0; i--) cells.push({ y: year, m: month - 1, d: daysInPrevMonth - i, otherMonth: true });
+    for (let d = 1; d <= daysInMonth; d++) cells.push({ y: year, m: month, d, otherMonth: false });
+    while (cells.length % 7 !== 0 || cells.length < 42) cells.push({ y: year, m: month + 1, d: cells.length - (firstDow + daysInMonth) + 1, otherMonth: true });
+
+    const t = todayStr();
+    cells.forEach(c => {
+      const key = dateKey(c.y, c.m, c.d);
+      const dayEvents = state.events.filter(e => e.date === key);
+      const cell = document.createElement('div');
+      cell.className = 'ad-cal-day' + (c.otherMonth ? ' other-month' : '') + (key === t ? ' today' : '') + (key === calSelected ? ' selected' : '');
+      const pillsHtml = dayEvents.slice(0, 2).map(e => {
+        const style = eventStyle(e);
+        const label = e.personKey ? `${personName(e.personKey)}: ${e.title}` : e.title;
+        return `<div class="ad-cal-pill" style="background:${style.bg};color:${style.fg};">${esc(label)}</div>`;
+      }).join('');
+      const moreHtml = dayEvents.length > 2 ? `<div class="ad-cal-more">+${dayEvents.length - 2} more</div>` : '';
+      cell.innerHTML = `<div class="ad-cal-daynum">${c.d}</div>${pillsHtml}${moreHtml}`;
+      cell.addEventListener('click', () => {
+        if (c.otherMonth) calMonth = new Date(c.y, c.m, 1);
+        calSelected = key;
+        renderCalendar();
+      });
+      grid.appendChild(cell);
+    });
+
+    const legend = document.getElementById('adCalLegend');
+    legend.innerHTML = CATEGORIES.map(cat => {
+      const style = CATEGORY_STYLE[cat];
+      return `<div class="ad-cal-legend-item"><span class="ad-cal-legend-dot" style="background:${style.fg};"></span>${cat}</div>`;
+    }).join('');
+
+    const teamLegend = document.getElementById('adCalTeamLegend');
+    teamLegend.innerHTML = PEOPLE.map(p => {
+      const color = PERSON_COLORS[p.key] || '#475569';
+      return `<div class="ad-cal-legend-item"><span class="ad-cal-legend-dot" style="background:${color};"></span>${p.name}'s tasks</div>`;
+    }).join('');
+  }
+
+  function renderCalSide() {
+    const dt = new Date(calSelected + 'T00:00:00');
+    document.getElementById('adCalSideHead').textContent = dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const dayEvents = state.events.filter(e => e.date === calSelected);
+    const listEl = document.getElementById('adCalSideList');
+    listEl.innerHTML = dayEvents.length ? dayEvents.map(e => {
+      const style = eventStyle(e);
+      const badgeLabel = e.personKey ? personName(e.personKey) : e.category;
+      return `
+        <div class="ad-cal-day-event">
+          <div>
+            <span class="ad-badge" style="background:${style.bg};color:${style.fg};">${esc(badgeLabel)}</span>
+            <div style="margin-top:4px;">${esc(e.title)}${e.owner && !e.personKey ? `<div style="color:var(--text-soft);font-size:11.5px;">${esc(e.owner)}</div>` : ''}</div>
+          </div>
+          <button class="ad-btn ghost danger del" data-id="${e.id}">Remove</button>
+        </div>`;
+    }).join('') : '<div class="ad-empty">Nothing on this day yet.</div>';
+    listEl.querySelectorAll('.del').forEach(btn => btn.addEventListener('click', async () => {
+      state.events = state.events.filter(x => x.id !== btn.dataset.id);
+      await save('events'); renderCalendar(); renderOverview();
+    }));
+
+    const formEl = document.getElementById('adCalSideForm');
+    formEl.innerHTML = `
+      <button class="ad-btn dashed" id="adCalAddBtn">+ Add deadline on this day</button>
+      <div id="adCalAddForm"></div>
+    `;
+    document.getElementById('adCalAddBtn').addEventListener('click', () => {
+      const w = document.getElementById('adCalAddForm');
+      if (w.innerHTML) { w.innerHTML = ''; return; }
+      w.innerHTML = `
+        <div class="ad-form">
+          <label>What's due</label>
+          <input class="f-title" type="text" placeholder="e.g. Fall appeal #2 send">
+          <label>Date</label>
+          <input class="f-date" type="date" value="${calSelected}">
+          <label>Category</label>
+          <select class="f-cat">${CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select>
+          <input class="f-cat-other" type="text" placeholder="Type category…" style="display:none;">
+          <label>Owner (optional)</label>
+          <select class="f-owner"><option value="">—</option>${PEOPLE.map(p => `<option>${p.name}</option>`).join('')}</select>
+          <div class="ad-form-actions">
+            <button class="ad-btn primary f-save">Add</button>
+            <button class="ad-btn f-cancel">Cancel</button>
+          </div>
+        </div>
+      `;
+      w.querySelector('.f-cancel').addEventListener('click', () => w.innerHTML = '');
+      bindOtherToggle(w.querySelector('.f-cat'), w.querySelector('.f-cat-other'));
+      w.querySelector('.f-save').addEventListener('click', async () => {
+        const title = w.querySelector('.f-title').value.trim();
+        const date = w.querySelector('.f-date').value;
+        if (!title || !date) return;
+        state.events.push({ id: uid(), title, date, category: resolveCategory(w.querySelector('.f-cat'), w.querySelector('.f-cat-other')), owner: w.querySelector('.f-owner').value });
+        await save('events');
+        calSelected = date;
+        renderCalendar(); renderOverview();
+      });
+    });
+  }
+
+  // ---------- IDEAS ----------
+  function renderIdeas() {
+    const list = document.getElementById('adIdeaList');
+    list.innerHTML = '';
+    if (!state.ideas.length) { list.innerHTML = '<div class="ad-empty">No ideas logged yet.</div>'; return; }
+    const sorted = [...state.ideas].sort((a,b) => (b.starred - a.starred) || (b.votes - a.votes) || a.title.localeCompare(b.title));
+    sorted.forEach(i => {
+      const el = document.createElement('div');
+      el.className = 'ad-idea-card';
+      const style = IDEA_TYPE_STYLE[i.type] || IDEA_TYPE_STYLE['Other'];
+      const removable = canRemove(i);
+      el.innerHTML = `
+        <button class="ad-idea-star ${i.starred ? 'on' : ''}" title="Star this idea">${i.starred ? '★' : '☆'}</button>
+        <div class="ad-idea-body">
+          <div class="ad-idea-top">
+            <div>
+              <span class="ad-idea-title">${esc(i.title)}</span>
+              <span class="ad-badge" style="background:${style.bg};color:${style.fg};margin-left:6px;">${esc(i.type)}</span>
+            </div>
+            ${i.ask ? `<div class="ad-idea-ask">${esc(i.ask)}</div>` : ''}
+          </div>
+          ${i.description ? `<div class="ad-idea-desc">${esc(i.description)}</div>` : ''}
+          ${i.addedBy ? `<div class="ad-attribution">Added by ${esc(i.addedBy)}</div>` : ''}
+          <div class="ad-idea-meta-row">
+            <button class="ad-idea-vote-btn upvote">▲ ${i.votes}</button>
+            ${i.targetDate ? `<span class="ad-dep-meta">Target: ${esc(fmtDate(i.targetDate))}</span>` : ''}
+            ${i.addedToCalendar ? '<span class="ad-idea-added-tag">✓ On calendar</span>' : ''}
+            <span style="flex:1;"></span>
+            <button class="ad-btn ghost add-cal">Add to calendar</button>
+            <button class="ad-btn ghost danger del ${removable ? '' : 'ad-locked-btn'}" ${removable ? '' : 'title="Only the person who added this or an admin can remove it"'}>Remove</button>
+          </div>
+          <div class="ad-idea-cal-form"></div>
+        </div>
+      `;
+      el.querySelector('.ad-idea-star').addEventListener('click', async () => { i.starred = !i.starred; await save('ideas'); renderIdeas(); renderOverview(); });
+      el.querySelector('.upvote').addEventListener('click', async () => { i.votes += 1; await save('ideas'); renderIdeas(); renderOverview(); });
+      el.querySelector('.del').addEventListener('click', async () => {
+        if (!canRemove(i)) { alert('Only the person who added this idea, or an admin, can remove it.'); return; }
+        state.ideas = state.ideas.filter(x => x.id !== i.id); await save('ideas'); renderIdeas(); renderOverview();
+        logActivity(`removed idea "${i.title.slice(0, 60)}"`);
+      });
+      el.querySelector('.add-cal').addEventListener('click', () => {
+        const w = el.querySelector('.ad-idea-cal-form');
+        if (w.innerHTML) { w.innerHTML = ''; return; }
+        w.innerHTML = `
+          <div class="ad-form">
+            <label>Date</label>
+            <input class="f-date" type="date" value="${i.targetDate || ''}">
+            <label>Calendar category</label>
+            <select class="f-cat">${CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select>
+            <input class="f-cat-other" type="text" placeholder="Type category…" style="display:none;">
+            <label>Owner (optional)</label>
+            <select class="f-owner"><option value="">—</option>${PEOPLE.map(p => `<option>${p.name}</option>`).join('')}</select>
+            <div class="ad-form-actions">
+              <button class="ad-btn primary f-save">Add to calendar</button>
+              <button class="ad-btn f-cancel">Cancel</button>
+            </div>
+          </div>
+        `;
+        w.querySelector('.f-cancel').addEventListener('click', () => w.innerHTML = '');
+        bindOtherToggle(w.querySelector('.f-cat'), w.querySelector('.f-cat-other'));
+        w.querySelector('.f-save').addEventListener('click', async () => {
+          const date = w.querySelector('.f-date').value;
+          if (!date) return;
+          state.events.push({ id: uid(), title: i.title, date, category: resolveCategory(w.querySelector('.f-cat'), w.querySelector('.f-cat-other')), owner: w.querySelector('.f-owner').value });
+          i.addedToCalendar = true;
+          i.targetDate = date;
+          await save('events'); await save('ideas');
+          renderIdeas(); renderCalendar(); renderOverview();
+          logActivity(`pushed idea "${i.title.slice(0, 60)}" to the calendar`);
+        });
+      });
+      list.appendChild(el);
+    });
+  }
+
+  function toggleIdeaForm() {
+    const wrap = document.getElementById('adIdeaForm');
+    if (wrap.innerHTML) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `
+      <div class="ad-form" style="max-width:460px;">
+        <label>Idea title</label>
+        <input class="f-title" type="text" placeholder="e.g. Newsletter Initiative">
+        <label>Description</label>
+        <textarea class="f-desc" placeholder="What is it, what does it fund, any deliverables"></textarea>
+        <label>Type</label>
+        <select class="f-type">${IDEA_TYPES.map(t => `<option>${t}</option>`).join('')}</select>
+        <input class="f-type-other" type="text" placeholder="Type category…" style="display:none;">
+        <label>Ask amount (optional)</label>
+        <input class="f-ask" type="text" placeholder="e.g. $12,000–$15,000">
+        <label>Target date to implement (optional)</label>
+        <input class="f-date" type="date">
+        <div class="ad-form-actions">
+          <button class="ad-btn primary f-save">Add idea</button>
+          <button class="ad-btn f-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+    wrap.querySelector('.f-cancel').addEventListener('click', () => wrap.innerHTML = '');
+    bindOtherToggle(wrap.querySelector('.f-type'), wrap.querySelector('.f-type-other'));
+    wrap.querySelector('.f-save').addEventListener('click', async () => {
+      const title = wrap.querySelector('.f-title').value.trim();
+      if (!title) return;
+      state.ideas.push({
+        id: uid(), title, description: wrap.querySelector('.f-desc').value.trim(),
+        type: resolveCategory(wrap.querySelector('.f-type'), wrap.querySelector('.f-type-other')), ask: wrap.querySelector('.f-ask').value.trim(),
+        targetDate: wrap.querySelector('.f-date').value, votes: 0, starred: false, addedToCalendar: false,
+        addedBy: currentUser.name,
+      });
+      await save('ideas'); wrap.innerHTML = ''; renderIdeas(); renderOverview();
+      logActivity(`added idea "${title.slice(0, 60)}"`);
+    });
+  }
+
+  // ---------- DECISIONS ----------
+  function renderDecisions() {
+    const list = document.getElementById('adDecList');
+    list.innerHTML = '';
+    if (!state.decisions.length) { list.innerHTML = '<div class="ad-empty">No open decisions. Flag one when the team needs a ruling to keep moving.</div>'; return; }
+    const sorted = [...state.decisions].sort((a,b) => (a.status==='decided')-(b.status==='decided'));
+    sorted.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'ad-decision';
+      const removable = canRemove(d);
+      el.innerHTML = `
+        <span class="ad-badge ${d.status === 'decided' ? 'done' : 'waiting'}">${d.status === 'decided' ? 'Decided' : 'Open'}</span>
+        <div class="ad-decision-q">${esc(d.question)}</div>
+        <div class="ad-decision-meta">${d.owner ? 'Owner: ' + esc(d.owner) : 'No owner set'}${d.dueDate ? ' · Needed by ' + esc(fmtDate(d.dueDate)) : ''}</div>
+        ${d.createdBy ? `<div class="ad-attribution">Flagged by ${esc(d.createdBy)}</div>` : ''}
+        ${d.status === 'decided' ? `<div class="ad-decision-res">${esc(d.resolution)}${d.decidedDate ? ' (' + esc(fmtDate(d.decidedDate)) + ')' : ''}${d.resolvedBy ? ' — ' + esc(d.resolvedBy) : ''}</div>` : ''}
+        <div style="margin-top:7px;">
+          ${d.status !== 'decided' ? '<button class="ad-btn ghost resolve">Record decision</button>' : '<button class="ad-btn ghost reopen">Reopen</button>'}
+          <button class="ad-btn ghost danger del ${removable ? '' : 'ad-locked-btn'}" ${removable ? '' : 'title="Only the person who flagged this or an admin can remove it"'}>Remove</button>
+        </div>
+        <div class="ad-resolve-form"></div>
+      `;
+      const formWrap = el.querySelector('.ad-resolve-form');
+      const resolveBtn = el.querySelector('.resolve');
+      if (resolveBtn) resolveBtn.addEventListener('click', () => {
+        if (formWrap.innerHTML) { formWrap.innerHTML = ''; return; }
+        formWrap.innerHTML = `
+          <div class="ad-form">
+            <label>What was decided</label>
+            <textarea class="f-res" placeholder="Record the decision"></textarea>
+            <div class="ad-form-actions">
+              <button class="ad-btn primary f-save">Save</button>
+              <button class="ad-btn f-cancel">Cancel</button>
+            </div>
+          </div>
+        `;
+        formWrap.querySelector('.f-cancel').addEventListener('click', () => formWrap.innerHTML = '');
+        formWrap.querySelector('.f-save').addEventListener('click', async () => {
+          const res = formWrap.querySelector('.f-res').value.trim();
+          if (!res) return;
+          d.resolution = res; d.status = 'decided'; d.decidedDate = new Date().toISOString().slice(0,10);
+          d.resolvedBy = currentUser.name;
+          await save('decisions'); renderDecisions(); renderOverview();
+          logActivity(`recorded a decision: "${d.question.slice(0, 60)}"`);
+        });
+      });
+      const reopenBtn = el.querySelector('.reopen');
+      if (reopenBtn) reopenBtn.addEventListener('click', async () => { d.status = 'open'; await save('decisions'); renderDecisions(); renderOverview(); });
+      el.querySelector('.del').addEventListener('click', async () => {
+        if (!canRemove(d)) { alert('Only the person who flagged this decision, or an admin, can remove it.'); return; }
+        state.decisions = state.decisions.filter(x => x.id !== d.id);
+        await save('decisions'); renderDecisions(); renderOverview();
+        logActivity(`removed decision "${d.question.slice(0, 60)}"`);
+      });
+      list.appendChild(el);
+    });
+  }
+
+  function toggleDecForm() {
+    const wrap = document.getElementById('adDecForm');
+    if (wrap.innerHTML) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `
+      <div class="ad-form" style="max-width:460px;">
+        <label>Decision needed</label>
+        <textarea class="f-q" placeholder="e.g. Do we increase appeal frequency to leadership donors?"></textarea>
+        <label>Owner (optional)</label>
+        <select class="f-owner"><option value="">—</option>${PEOPLE.map(p => `<option>${p.name}</option>`).join('')}<option>Manager</option></select>
+        <label>Needed by (optional)</label>
+        <input class="f-due" type="date">
+        <div class="ad-form-actions">
+          <button class="ad-btn primary f-save">Flag decision</button>
+          <button class="ad-btn f-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+    wrap.querySelector('.f-cancel').addEventListener('click', () => wrap.innerHTML = '');
+    wrap.querySelector('.f-save').addEventListener('click', async () => {
+      const q = wrap.querySelector('.f-q').value.trim();
+      if (!q) return;
+      state.decisions.push({ id: uid(), question: q, owner: wrap.querySelector('.f-owner').value, dueDate: wrap.querySelector('.f-due').value, status: 'open', createdBy: currentUser.name });
+      await save('decisions'); wrap.innerHTML = ''; renderDecisions(); renderOverview();
+      logActivity(`flagged a decision: "${q.slice(0, 60)}"`);
+    });
+  }
+
+  // ---------- CAMPAIGNS (Annual / Capital) ----------
+  const CAMPAIGN_INFO = {
+    annual: { label: 'Annual Campaign', desc: 'Regular donations that fund the day-to-day running of the DP.' },
+    capital: { label: 'Capital Campaign', desc: 'Donations toward the building renovation.' },
+  };
+  const TAG_DEFS = [
+    { key: 'high', label: 'High Potential', short: 'HP', bg: 'var(--purple-soft)', fg: 'var(--purple)' },
+    { key: 'new', label: 'New Donor', short: 'New', bg: 'var(--blue-soft)', fg: 'var(--blue)' },
+    { key: 'recurring', label: 'Recurring Donor', short: 'Rec', bg: 'var(--green-soft)', fg: 'var(--green)' },
+  ];
+  const campaignFilters = {
+    annual: { search: '', from: '', to: '', batch: '', tag: '' },
+    capital: { search: '', from: '', to: '', batch: '', tag: '' },
+  };
+  function refreshCampaignRequestLists() { renderRequestList('annual'); renderRequestList('capital'); }
+
+  function initCampaignPanel(key) {
+    const info = CAMPAIGN_INFO[key];
+    const root = document.getElementById('campaignRoot-' + key);
+    root.innerHTML = `
+      <div class="ad-toolbar">
+        <div>
+          <div class="ad-section-title">${info.label}</div>
+          <div class="ad-section-desc">${info.desc}</div>
+        </div>
+      </div>
+
+      <div class="ad-campaign-block">
+        <div class="ad-section-title" style="font-size:14px;">Kristina's Weekly Report</div>
+        <div class="ad-section-desc">Upload her weekly export (CSV or Excel) and set the date the report covers — rows get appended to a running spreadsheet below, filterable by that week.</div>
+        <div class="ad-campaign-toolbar-row">
+          <button class="ad-btn dashed" style="width:auto;" id="adUploadBtn-${key}">+ Upload weekly report</button>
+          <span class="ad-upload-meta" id="adUploadMeta-${key}"></span>
+          <span style="flex:1;"></span>
+          <button class="ad-btn ghost danger" id="adClearRows-${key}" style="${isAdmin() ? '' : 'display:none;'}">Clear all report data</button>
+        </div>
+        <div id="adUploadForm-${key}"></div>
+        <div class="ad-campaign-toolbar-row">
+          <input type="text" class="ad-filter-input" id="adFilterSearch-${key}" placeholder="Search rows…" style="max-width:180px;">
+          <label class="ad-filter-label">Report from <input type="date" class="ad-filter-input" id="adFilterFrom-${key}"></label>
+          <label class="ad-filter-label">to <input type="date" class="ad-filter-input" id="adFilterTo-${key}"></label>
+          <select class="ad-filter-input" id="adFilterBatch-${key}"><option value="">All weeks</option></select>
+          <select class="ad-filter-input" id="adFilterTag-${key}">
+            <option value="">All tags</option>
+            ${TAG_DEFS.map(t => `<option value="${t.key}">${t.label} only</option>`).join('')}
+            <option value="__untagged">Untagged only</option>
+          </select>
+          <button class="ad-btn ghost" id="adFilterClear-${key}">Clear filters</button>
+        </div>
+        <div class="ad-section-desc" style="margin-top:6px;">Use the tag buttons in each row (HP / New / Rec) to mark high-potential, new, and recurring donors as you review the report.</div>
+        <div id="adCampaignTable-${key}"></div>
+      </div>
+
+      <div class="ad-campaign-block">
+        <div class="ad-section-title" style="font-size:14px;">Submit a Task to Kristina</div>
+        <div class="ad-section-desc">Ask her for specific info — it'll land on her Team Board card and on the Calendar by the date you need it.</div>
+        <div class="ad-callout"><b>IMPORTANT: Please let me know at least 2-3 days in advance!</b>I will be in the office at these times:
+Thursday: 10AM-11:50AM and 3:30-5:00PM
+Friday: 10AM-2PM
+
+Email: caok@wharton.upenn.edu</div>
+        <div class="ad-add-wrap"><button class="ad-btn dashed" id="adReqBtn-${key}">+ Submit a task</button></div>
+        <div id="adReqForm-${key}"></div>
+        <div class="ad-section-title" style="font-size:13px;margin-top:14px;">Requests submitted here</div>
+        <div class="ad-card" id="adReqList-${key}"></div>
+      </div>
+
+      <div class="ad-campaign-block">
+        <div class="ad-section-title" style="font-size:14px;">Donor Highlights</div>
+        <div class="ad-section-desc">High-potential, new, and recurring donors Itamar has flagged in the report above.</div>
+        <div class="ad-card" id="adHighlights-${key}"></div>
+      </div>
+    `;
+
+    document.getElementById('adUploadBtn-' + key).addEventListener('click', () => toggleUploadForm(key));
+
+    document.getElementById('adCampaignTable-' + key).addEventListener('click', async (e) => {
+      const btn = e.target.closest('.ad-tag-btn');
+      if (!btn) return;
+      const row = (state.donorRows[key] || []).find(r => r._rowId === btn.dataset.rowId);
+      if (!row) return;
+      row._tag = row._tag === btn.dataset.tag ? '' : btn.dataset.tag;
+      row._taggedBy = row._tag ? currentUser.name : row._taggedBy;
+      await save('donorRows');
+      renderCampaignTable(key);
+      renderDonorHighlights(key);
+      if (row._tag) logActivity(`tagged a donor "${TAG_DEFS.find(t => t.key === row._tag).label}" in ${info.label}`);
+    });
+
+    document.getElementById('adClearRows-' + key).addEventListener('click', async () => {
+      if (!isAdmin()) { alert('Only an admin can clear report data.'); return; }
+      if (!state.donorRows[key].length) return;
+      if (!confirm(`Clear all uploaded report data for the ${info.label}? This can't be undone.`)) return;
+      state.donorRows[key] = [];
+      await save('donorRows');
+      renderFilterBatchOptions(key);
+      renderCampaignTable(key);
+      renderDonorHighlights(key);
+      logActivity(`cleared all report data in ${info.label}`);
+    });
+    document.getElementById('adReqBtn-' + key).addEventListener('click', () => toggleRequestForm(key));
+
+    document.getElementById('adFilterSearch-' + key).addEventListener('input', (e) => {
+      campaignFilters[key].search = e.target.value;
+      renderCampaignTable(key);
+    });
+    document.getElementById('adFilterFrom-' + key).addEventListener('change', (e) => {
+      campaignFilters[key].from = e.target.value;
+      renderCampaignTable(key);
+    });
+    document.getElementById('adFilterTo-' + key).addEventListener('change', (e) => {
+      campaignFilters[key].to = e.target.value;
+      renderCampaignTable(key);
+    });
+    document.getElementById('adFilterBatch-' + key).addEventListener('change', (e) => {
+      campaignFilters[key].batch = e.target.value;
+      renderCampaignTable(key);
+    });
+    document.getElementById('adFilterTag-' + key).addEventListener('change', (e) => {
+      campaignFilters[key].tag = e.target.value;
+      renderCampaignTable(key);
+    });
+    document.getElementById('adFilterClear-' + key).addEventListener('click', () => {
+      campaignFilters[key] = { search: '', from: '', to: '', batch: '', tag: '' };
+      document.getElementById('adFilterSearch-' + key).value = '';
+      document.getElementById('adFilterFrom-' + key).value = '';
+      document.getElementById('adFilterTo-' + key).value = '';
+      document.getElementById('adFilterBatch-' + key).value = '';
+      document.getElementById('adFilterTag-' + key).value = '';
+      renderCampaignTable(key);
+    });
+
+    renderFilterBatchOptions(key);
+    renderCampaignTable(key);
+    renderRequestList(key);
+    renderDonorHighlights(key);
+  }
+
+  function toggleUploadForm(key) {
+    const wrap = document.getElementById('adUploadForm-' + key);
+    if (wrap.innerHTML) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `
+      <div class="ad-form" style="max-width:380px;">
+        <label>Report date (the week this report covers)</label>
+        <input type="date" class="f-report-date" value="${todayStr()}">
+        <label>File (CSV or Excel)</label>
+        <input type="file" class="f-file" accept=".csv,.xlsx,.xls">
+        <div class="ad-form-actions">
+          <button class="ad-btn primary f-upload">Upload</button>
+          <button class="ad-btn f-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+    wrap.querySelector('.f-cancel').addEventListener('click', () => wrap.innerHTML = '');
+    wrap.querySelector('.f-upload').addEventListener('click', () => {
+      const reportDate = wrap.querySelector('.f-report-date').value;
+      const file = wrap.querySelector('.f-file').files[0];
+      if (!reportDate || !file) {
+        document.getElementById('adUploadMeta-' + key).textContent = 'Please choose a report date and a file.';
+        return;
+      }
+      handleReportUpload(key, file, reportDate, wrap);
+    });
+  }
+
+  function handleReportUpload(key, file, reportDate, formWrap) {
+    const meta = document.getElementById('adUploadMeta-' + key);
+    meta.textContent = 'Reading ' + file.name + '…';
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        if (!rows.length) { meta.textContent = 'No rows found in ' + file.name + '.'; return; }
+        const uploadedAt = todayStr();
+        const tagged = rows.map(r => ({ ...r, _reportDate: reportDate, _uploadedAt: uploadedAt, _fileName: file.name, _rowId: uid(), _tag: '', _uploadedBy: currentUser.name }));
+        state.donorRows[key] = state.donorRows[key].concat(tagged);
+        await save('donorRows');
+        meta.textContent = `Added ${rows.length} row${rows.length === 1 ? '' : 's'} from ${file.name} — report date ${fmtDate(reportDate)}`;
+        if (formWrap) formWrap.innerHTML = '';
+        renderFilterBatchOptions(key);
+        renderCampaignTable(key);
+        renderDonorHighlights(key);
+        logActivity(`uploaded a weekly report to ${CAMPAIGN_INFO[key].label} (${rows.length} rows, report date ${fmtDate(reportDate)})`);
+      } catch (err) {
+        meta.textContent = 'Could not read that file — please upload a CSV or Excel export.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function renderFilterBatchOptions(key) {
+    const select = document.getElementById('adFilterBatch-' + key);
+    const current = campaignFilters[key].batch;
+    const dates = [...new Set((state.donorRows[key] || []).map(r => r._reportDate).filter(Boolean))].sort().reverse();
+    select.innerHTML = '<option value="">All weeks</option>' + dates.map(d => {
+      const count = state.donorRows[key].filter(r => r._reportDate === d).length;
+      return `<option value="${d}" ${d === current ? 'selected' : ''}>Week of ${fmtDate(d)} (${count} row${count === 1 ? '' : 's'})</option>`;
+    }).join('');
+  }
+
+  function getFilteredCampaignRows(key) {
+    const f = campaignFilters[key];
+    let rows = state.donorRows[key] || [];
+    if (f.batch) rows = rows.filter(r => r._reportDate === f.batch);
+    if (f.from) rows = rows.filter(r => r._reportDate && r._reportDate >= f.from);
+    if (f.to) rows = rows.filter(r => r._reportDate && r._reportDate <= f.to);
+    if (f.tag === '__untagged') rows = rows.filter(r => !r._tag);
+    else if (f.tag) rows = rows.filter(r => r._tag === f.tag);
+    if (f.search) {
+      const q = f.search.toLowerCase();
+      rows = rows.filter(r => Object.keys(r).some(k => k[0] !== '_' && String(r[k]).toLowerCase().indexOf(q) !== -1));
+    }
+    return rows;
+  }
+
+  function detectDonorColumns(cols) {
+    const find = (re) => cols.find(c => re.test(c));
+    const firstNameCol = find(/first\s*name/i) || find(/^first$/i);
+    const lastNameCol = find(/last\s*name/i) || find(/^last$/i) || find(/surname/i);
+    const nameCol = (!firstNameCol && !lastNameCol)
+      ? (find(/donor\s*name/i) || find(/full\s*name/i) || find(/^name$/i) || cols[0])
+      : null;
+    const amountCol = find(/gift\s*amount/i) || find(/amount/i) || find(/pledge/i) || find(/\$/);
+    const dateCol = find(/last\s*gift\s*date/i) || find(/last\s*gift/i) || find(/gift\s*date/i) || find(/last.*date/i) || find(/^date$/i);
+    return { firstNameCol, lastNameCol, nameCol, amountCol, dateCol };
+  }
+
+  function splitName(full) {
+    const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length <= 1) return { first: parts[0] || '', last: '' };
+    return { first: parts[0], last: parts.slice(1).join(' ') };
+  }
+
+  function fmtCurrency(v) {
+    if (v === undefined || v === null || v === '') return '';
+    const num = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+    if (isNaN(num)) return String(v);
+    return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function renderCampaignTable(key) {
+    const container = document.getElementById('adCampaignTable-' + key);
+    const allRows = state.donorRows[key] || [];
+    if (!allRows.length) { container.innerHTML = '<div class="ad-empty">No reports uploaded yet.</div>'; return; }
+    const rows = getFilteredCampaignRows(key);
+    const cols = [];
+    allRows.forEach(r => Object.keys(r).forEach(k => { if (k[0] !== '_' && cols.indexOf(k) === -1) cols.push(k); }));
+    const { amountCol } = detectDonorColumns(cols);
+    if (!rows.length) { container.innerHTML = '<div class="ad-empty">No rows match these filters.</div>'; return; }
+    let html = '<div class="ad-spreadsheet-wrap"><table class="ad-spreadsheet"><thead><tr><th>Tag</th>';
+    cols.forEach(c => html += `<th>${esc(c)}</th>`);
+    html += '<th>Report Date</th><th>Uploaded</th><th>Source File</th></tr></thead><tbody>';
+    rows.forEach(r => {
+      html += '<tr><td><div class="ad-tag-btn-group">';
+      TAG_DEFS.forEach(t => {
+        const isActive = r._tag === t.key;
+        const tip = isActive && r._taggedBy ? `${t.label} — tagged by ${r._taggedBy}` : t.label;
+        html += `<button class="ad-tag-btn ${isActive ? 'active-' + t.key : ''}" data-row-id="${r._rowId || ''}" data-tag="${t.key}" title="${esc(tip)}">${t.short}</button>`;
+      });
+      html += '</div></td>';
+      cols.forEach(c => {
+        const raw = r[c] === undefined ? '' : r[c];
+        const display = (c === amountCol) ? fmtCurrency(raw) : String(raw);
+        html += `<td>${esc(display)}</td>`;
+      });
+      html += `<td>${esc(fmtDate(r._reportDate || ''))}</td><td>${esc(fmtDate(r._uploadedAt || ''))}</td><td>${esc(r._fileName || '')}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  }
+
+  function renderDonorHighlights(key) {
+    const container = document.getElementById('adHighlights-' + key);
+    const allRows = state.donorRows[key] || [];
+    const tagged = allRows.filter(r => r._tag);
+    if (!tagged.length) {
+      container.innerHTML = '<div class="ad-empty">No donors tagged yet — use the HP / New / Rec buttons in the report table above.</div>';
+      return;
+    }
+    const cols = [];
+    allRows.forEach(r => Object.keys(r).forEach(k => { if (k[0] !== '_' && cols.indexOf(k) === -1) cols.push(k); }));
+    const { firstNameCol, lastNameCol, nameCol, amountCol, dateCol } = detectDonorColumns(cols);
+    const order = { high: 0, new: 1, recurring: 2 };
+    const sorted = [...tagged].sort((a, b) => (order[a._tag] ?? 9) - (order[b._tag] ?? 9));
+    let html = '<div class="ad-spreadsheet-wrap"><table class="ad-spreadsheet"><thead><tr>';
+    html += '<th>Category</th><th>First Name</th><th>Last Name</th><th>Gift Amount</th><th>Last Gift Date</th>';
+    html += '</tr></thead><tbody>';
+    sorted.forEach(r => {
+      const t = TAG_DEFS.find(t => t.key === r._tag);
+      let first = '', last = '';
+      if (firstNameCol || lastNameCol) {
+        first = firstNameCol ? String(r[firstNameCol] === undefined ? '' : r[firstNameCol]) : '';
+        last = lastNameCol ? String(r[lastNameCol] === undefined ? '' : r[lastNameCol]) : '';
+      } else if (nameCol) {
+        const split = splitName(r[nameCol]);
+        first = split.first; last = split.last;
+      }
+      const amountDisplay = amountCol ? fmtCurrency(r[amountCol]) : '';
+      const dateDisplay = dateCol ? String(r[dateCol] === undefined ? '' : r[dateCol]) : '';
+      html += `<tr><td><span class="ad-badge" style="background:${t.bg};color:${t.fg};">${esc(t.label)}</span></td>`;
+      html += `<td>${esc(first)}</td><td>${esc(last)}</td><td>${esc(amountDisplay)}</td><td>${esc(dateDisplay)}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  }
+
+  function toggleRequestForm(key) {
+    const wrap = document.getElementById('adReqForm-' + key);
+    if (wrap.innerHTML) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `
+      <div class="ad-form" style="max-width:460px;">
+        <label>Your name</label>
+        <input class="f-name" type="text" placeholder="e.g. Lexi" value="${esc(currentUser.name || '')}">
+        <label>Email</label>
+        <input class="f-email" type="email" placeholder="you@example.com">
+        <label>Phone number</label>
+        <input class="f-phone" type="tel" placeholder="(555) 555-5555">
+        <label>Date you need this by</label>
+        <input class="f-due" type="date">
+        <label>What do you need from Kristina?</label>
+        <textarea class="f-request" placeholder="e.g. Gift totals by month for the last 3 years"></textarea>
+        <div class="ad-form-actions">
+          <button class="ad-btn primary f-save">Submit to Kristina</button>
+          <button class="ad-btn f-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+    wrap.querySelector('.f-cancel').addEventListener('click', () => wrap.innerHTML = '');
+    wrap.querySelector('.f-save').addEventListener('click', async () => {
+      const name = wrap.querySelector('.f-name').value.trim();
+      const request = wrap.querySelector('.f-request').value.trim();
+      const due = wrap.querySelector('.f-due').value;
+      if (!name || !request || !due) return;
+      const newTask = {
+        id: uid(), person: 'kristina', title: request, status: 'in-progress', due, waitingOn: '',
+        requesterName: name,
+        requesterEmail: wrap.querySelector('.f-email').value.trim(),
+        requesterPhone: wrap.querySelector('.f-phone').value.trim(),
+        campaign: key,
+        createdBy: currentUser.name || name,
+        lastEditedBy: currentUser.name || name,
+      };
+      state.tasks.push(newTask);
+      syncTaskEvent(newTask);
+      await save('tasks'); await save('events');
+      wrap.innerHTML = '';
+      renderBoard(); renderCalendar(); renderOverview(); refreshCampaignRequestLists();
+      logActivity(`submitted a task to Kristina from ${CAMPAIGN_INFO[key].label}: "${request.slice(0, 60)}"`);
+    });
+  }
+
+  function renderRequestList(key) {
+    const list = document.getElementById('adReqList-' + key);
+    const reqs = state.tasks.filter(t => t.campaign === key).sort((a,b) => (a.due||'').localeCompare(b.due||''));
+    if (!reqs.length) { list.innerHTML = '<div class="ad-empty">No requests submitted yet.</div>'; return; }
+    list.innerHTML = reqs.map(t => `
+      <div class="ad-request-row">
+        <span class="ad-badge ${t.status}"><span class="ad-dot"></span>${STATUS_LABEL[t.status]}</span>
+        <div style="margin-top:4px;">${esc(t.title)}</div>
+        <div class="ad-request-meta">From ${esc(t.requesterName)}${t.requesterEmail ? ' · ' + esc(t.requesterEmail) : ''}${t.requesterPhone ? ' · ' + esc(t.requesterPhone) : ''} · Needed by ${esc(fmtDate(t.due))}</div>
+      </div>
+    `).join('');
+  }
+
+
+  // ---------- SIDEBAR NAV (icon-triggered drawer) ----------
+  function openSidebar() {
+    document.getElementById('adSidebar').classList.add('open');
+    document.getElementById('adSidebarOverlay').classList.add('open');
+  }
+  function closeSidebar() {
+    document.getElementById('adSidebar').classList.remove('open');
+    document.getElementById('adSidebarOverlay').classList.remove('open');
+  }
+  function activateTab(tab) {
+    document.querySelectorAll('.ad-nav-item, .ad-nav-subitem').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.ad-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll(`[data-tab="${tab}"]`).forEach(b => b.classList.add('active'));
+    if (tab.indexOf('campaigns-') === 0) {
+      const parent = document.querySelector('.ad-nav-parent');
+      if (parent) parent.classList.add('active');
+    }
+    const panel = document.getElementById('panel-' + tab);
+    if (panel) panel.classList.add('active');
+  }
+  document.getElementById('adMenuBtn').addEventListener('click', openSidebar);
+  document.getElementById('adSidebarClose').addEventListener('click', closeSidebar);
+  document.getElementById('adSidebarOverlay').addEventListener('click', closeSidebar);
+  document.getElementById('adSidebar').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-tab]');
+    if (!btn) return;
+    activateTab(btn.dataset.tab);
+    closeSidebar();
+  });
+
+  document.getElementById('adCalPrev').addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCalGrid(); });
+  document.getElementById('adCalNext').addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCalGrid(); });
+  document.getElementById('adCalToday').addEventListener('click', () => { const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); calSelected = todayStr(); renderCalendar(); });
+  document.getElementById('adAddIdeaBtn').addEventListener('click', toggleIdeaForm);
+  document.getElementById('adAddDecBtn').addEventListener('click', toggleDecForm);
+  document.getElementById('adDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  function renderAllPanels() {
+    renderOverview(); renderBoard(); renderCalendar(); renderIdeas(); renderDecisions();
+    renderActivityLog();
+    initCampaignPanel('annual'); initCampaignPanel('capital');
+  }
+
+  function stampSync() {
+    const el = document.getElementById('adSyncMeta');
+    if (el) el.textContent = 'Synced ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  document.getElementById('adSyncBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('adSyncBtn');
+    btn.classList.add('spinning');
+    await loadAll();
+    renderAllPanels();
+    stampSync();
+    setTimeout(() => btn.classList.remove('spinning'), 600);
+  });
+
+  (async function init() {
+    await loadIdentity();
+    const start = async () => {
+      await loadAll();
+      document.getElementById('adLoading').style.display = 'none';
+      renderAllPanels();
+      stampSync();
+    };
+    if (!currentUser.name) {
+      openIdentityModal(start);
+    } else {
+      renderWhoAmI();
+      await start();
+    }
+  })();
+})();
+</script>
